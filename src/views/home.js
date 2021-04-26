@@ -22,7 +22,16 @@ class Home extends React.Component {
     response.data.sort((a, b) => (a.id - b.id))
     console.log(response)
 
-    var dailyCases = [['Date', 'New Cases', 'New Deaths', 'Active Cases', 'Total Deaths', 'Total Recovered']]
+    var dailyCases = [[
+      'Date', 'New Cases', 'New Deaths', 'Active Cases', 'Total Deaths', 
+      'Total Resolved', 'Total Active',
+    ]]
+    var data2 = [[
+      'Date', 'New Vaccinations', 'Num Fully Vaccinated', 'Num Part Vaccinated',
+    ]]
+    var data3 = [[
+      'Date', 'B117 (UK)', 'B1351 (South Africa)', 'P1 (Brazil)',
+    ]]
     response.data.forEach(element => {
       const dateStr = element.date_string.split('-')
       dailyCases.push([
@@ -31,14 +40,10 @@ class Home extends React.Component {
         element.ts_cases.new_deaths,
         element.ts_cases.total_cases,
         element.ts_cases.total_deaths,
-        element.ts_cases.total_cases - element.ts_cases.total_deaths
+        element.ts_cases.total_resolved,
+        element.ts_cases.total_active,
       ])
-    })  
 
-    const dailyCaseData = window.google.visualization.arrayToDataTable(dailyCases)
-
-    var data2 = [['Date', 'New Vaccinations', 'Num Fully Vaccinated', 'Num Part Vaccinated']]
-    response.data.slice(response.ts_vacci_start, -1).forEach(element => {
       if (element.ts_vacci) {
         const dateStr = element.date_string.split('-')
         data2.push([
@@ -48,10 +53,23 @@ class Home extends React.Component {
           element.ts_vacci.num_part_vaccinated,
         ])
       }
-    })
 
+      if (element.ts_variant) {
+        data3.push([
+          new Date(parseInt(dateStr[0]), parseInt(dateStr[1])-1, parseInt(dateStr[2])), 
+          element.ts_variant.b117,
+          element.ts_variant.b1351,
+          element.ts_variant.p1,
+        ])
+      }
+    })  
+
+    // Load the google charts library
+    await window.google.charts.load('current', {packages: ['corechart']})
+
+    const dailyCaseData = window.google.visualization.arrayToDataTable(dailyCases)
     const dailyVacciData = window.google.visualization.arrayToDataTable(data2)
-    console.log(dailyVacciData)
+    const dailyVarriantData = window.google.visualization.arrayToDataTable(data3)
 
     this.setState({
       newCases: dailyCaseData.getValue(dailyCaseData.getNumberOfRows()-1, 1),
@@ -61,6 +79,7 @@ class Home extends React.Component {
       covidData: response,
       dailyCasesChartData: {gTable: dailyCaseData},
       dailyVacciChartData: {gTable: dailyVacciData},
+      dailyVarriantChartData: {gTable: dailyVarriantData}
     })
   }
 
@@ -71,6 +90,7 @@ class Home extends React.Component {
     this.drawTotalCaseDeathChart()
     this.drawTotalVaccineChart()
     this.drawDailyDeathsChart()
+    this.drawTotalVariantChart()
     
     if (!this.state.isMobile) {
       window.addEventListener('resize', () => {
@@ -79,6 +99,7 @@ class Home extends React.Component {
         this.drawTotalCaseDeathChart()
         this.drawTotalVaccineChart()
         this.drawDailyDeathsChart()
+        this.drawTotalVariantChart()
       })
     }
   }
@@ -113,30 +134,12 @@ class Home extends React.Component {
 
     const domElement = document.getElementById(domId)
     var chart = new window.google.visualization.LineChart(domElement)
-    console.log(chart.draw(dataView, options))
+    chart.draw(dataView, options)
   }
 
-  drawDailyCasesChart() {
-    const gTable = this.state.dailyCasesChartData.gTable
-    const dataToDraw = new window.google.visualization.DataView(gTable)
-    dataToDraw.hideColumns([2,3,4,5])
-    this.drawLineChart(dataToDraw.toDataTable(), 'Daily New Cases', 'dailyCasesChart')
-  }
-
-  drawDailyDeathsChart() {
-    const gTable = this.state.dailyCasesChartData.gTable
-    const dataToDraw = new window.google.visualization.DataView(gTable)
-    dataToDraw.hideColumns([1,3,4,5])
-    this.drawLineChart(dataToDraw.toDataTable(), 'Daily New Deaths', 'dailyDeathsChart')
-  }
-
-  drawTotalCaseDeathChart() {
-    const gTable = this.state.dailyCasesChartData.gTable
-    const dataToDraw = new window.google.visualization.DataView(gTable)
-    dataToDraw.setColumns([0, 1])
-
+  drawStackedBarChart(dataView, title, domId) {
     var options = {
-      title: 'Total Case Summary',
+      title: title,
       chartArea: {left: '8%', width: '87%'},
       legend: { position: 'bottom', maxLines: 3 },
       bar: { groupWidth: '100%' },
@@ -159,9 +162,30 @@ class Home extends React.Component {
       },
     }
 
-    const domElement = document.getElementById('totalCaseDataChart')
+    const domElement = document.getElementById(domId)
     var chart = new window.google.visualization.ColumnChart(domElement)
-    chart.draw(dataToDraw.toDataTable(), options)
+    chart.draw(dataView, options)
+  }
+
+  drawDailyCasesChart() {
+    const gTable = this.state.dailyCasesChartData.gTable
+    const dataToDraw = new window.google.visualization.DataView(gTable)
+    dataToDraw.hideColumns([2,3,4,5,6])
+    this.drawLineChart(dataToDraw.toDataTable(), 'Daily New Cases', 'dailyCasesChart')
+  }
+
+  drawDailyDeathsChart() {
+    const gTable = this.state.dailyCasesChartData.gTable
+    const dataToDraw = new window.google.visualization.DataView(gTable)
+    dataToDraw.hideColumns([1,3,4,5,6])
+    this.drawLineChart(dataToDraw.toDataTable(), 'Daily New Deaths', 'dailyDeathsChart')
+  }
+
+  drawTotalCaseDeathChart() {
+    const gTable = this.state.dailyCasesChartData.gTable
+    const dataToDraw = new window.google.visualization.DataView(gTable)
+    dataToDraw.hideColumns([1,2,3])
+    this.drawStackedBarChart(dataToDraw.toDataTable(), 'Total Case Summary', 'totalCaseDataChart')
   }
 
   drawDailyVaccineChart() {
@@ -175,34 +199,7 @@ class Home extends React.Component {
     const gTable = this.state.dailyVacciChartData.gTable
     const dataToDraw = new window.google.visualization.DataView(gTable)
     dataToDraw.setColumns([0,2,3])
-
-    var options = {
-      title: 'Total Vaccinations',
-      chartArea: {left: '8%', width: '87%'},
-      legend: { position: 'bottom', maxLines: 3 },
-      bar: { groupWidth: '100%' },
-      isStacked: true,
-      hAxis: { 
-        maxTextLines: 1,
-        format: 'MMM-d-YYYY', 
-        gridlines: {
-          color: 'transparent',
-        },
-      },
-      vAxis: { 
-        format: 'short',
-        maxTextLines: 1,
-      },
-      animation: {
-        startup: true,
-        duration: 800,
-        easing: 'out',
-      },
-    }
-
-    const domElement = document.getElementById('totalVaccinationChart')
-    var chart = new window.google.visualization.ColumnChart(domElement)
-    chart.draw(dataToDraw.toDataTable(), options)
+    this.drawStackedBarChart(dataToDraw.toDataTable(), 'Total Vaccinations Summary', 'totalVaccinationChart')
 
     /* 
     Bug caused when using animation.startup = true with DataView. Had to 
@@ -212,11 +209,18 @@ class Home extends React.Component {
     */
   }
 
+  drawTotalVariantChart() {
+    const gTable = this.state.dailyVarriantChartData.gTable
+    const dataToDraw = new window.google.visualization.DataView(gTable)
+    this.drawStackedBarChart(dataToDraw.toDataTable(), 'Total Variants Summary', 'totalVariantsChart')
+  }
+
   render() {
     var todaysDate = new Date()
     var options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
     if (this.state.dailyCasesChartData != null) {
-      todaysDate = this.state.dailyCasesChartData.gTable.getValue(0,0)
+      const gTable = this.state.dailyCasesChartData.gTable
+      todaysDate = gTable.getValue(gTable.getNumberOfRows()-1, 0)
     }
 
     return(
@@ -248,6 +252,12 @@ class Home extends React.Component {
           </ChartWrapper>
           <ChartWrapper>
             <div style={{width: '95%', height: '95%'}} id='totalVaccinationChart'/>
+          </ChartWrapper>
+        </Section>
+        <Section>
+          <h2>Variants</h2>
+          <ChartWrapper>
+            <div style={{width: '95%', height: '95%'}} id='totalVariantsChart'/>
           </ChartWrapper>
         </Section>
         <Section style={{marginBottom: '20px', fontSize: '30px'}}>
