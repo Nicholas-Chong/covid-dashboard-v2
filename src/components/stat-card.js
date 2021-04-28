@@ -25,17 +25,11 @@ export const StatCardWrapper = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
-  justify-content: space-evenly;
+  justify-content: space-between;
+  margin-top: ${props => props.marginTop ? 20 : 0}px;
 
   @media only screen and (max-width: 702px) {
-    height: 500px;
-    justify-content: space-between;
+    height: ${props => props.children.length*1.25*100}px;
     flex-direction: column;
-  }
-`
-
-export const InnerStatCardWrapper = styled(StatCardWrapper)`
-  @media only screen and (max-width: 702px) {
-    height: 500px;
   }
 `
