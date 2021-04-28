@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
+import MaterialTable from 'material-table'
 import { StatCard, StatCardWrapper } from '../components/stat-card'
 import { Page } from '../components/global'
 
@@ -11,95 +12,56 @@ class Home extends React.Component {
       newDeaths: null,
       newVacci: null,
       totalCases: null,
+      todaysDate: null,
+      totalVaccinated: 0,
       isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     }
   }
 
   async getData() {
     const dataUrl = 'https://evening-caverns-69599.herokuapp.com'
+    // const dataUrl = 'http://127.0.0.1:8000'
     const fetched = await fetch(dataUrl)
     const response = await fetched.json()
-    response.data.sort((a, b) => (a.id - b.id))
     console.log(response)
-
-    var dailyCases = [[
-      'Date', 'New Cases', 'New Deaths', 'Active Cases', 'Total Deaths', 
-      'Total Resolved', 'Total Active',
-    ]]
-    var data2 = [[
-      'Date', 'New Vaccinations', 'Num Fully Vaccinated', 'Num Part Vaccinated',
-    ]]
-    var data3 = [[
-      'Date', 'B117 (UK)', 'B1351 (South Africa)', 'P1 (Brazil)',
-    ]]
-    response.data.forEach(element => {
-      const dateStr = element.date_string.split('-')
-      dailyCases.push([
-        new Date(parseInt(dateStr[0]), parseInt(dateStr[1])-1, parseInt(dateStr[2])), 
-        element.ts_cases.new_cases,
-        element.ts_cases.new_deaths,
-        element.ts_cases.total_cases,
-        element.ts_cases.total_deaths,
-        element.ts_cases.total_resolved,
-        element.ts_cases.total_active,
-      ])
-
-      if (element.ts_vacci) {
-        const dateStr = element.date_string.split('-')
-        data2.push([
-          new Date(parseInt(dateStr[0]), parseInt(dateStr[1])-1, parseInt(dateStr[2])), 
-          element.ts_vacci.new_vaccinations,
-          element.ts_vacci.num_fully_vaccinated, 
-          element.ts_vacci.num_part_vaccinated,
-        ])
-      }
-
-      if (element.ts_variant) {
-        data3.push([
-          new Date(parseInt(dateStr[0]), parseInt(dateStr[1])-1, parseInt(dateStr[2])), 
-          element.ts_variant.b117,
-          element.ts_variant.b1351,
-          element.ts_variant.p1,
-        ])
-      }
-    })  
 
     // Load the google charts library
     await window.google.charts.load('current', {packages: ['corechart']})
 
-    const dailyCaseData = window.google.visualization.arrayToDataTable(dailyCases)
-    const dailyVacciData = window.google.visualization.arrayToDataTable(data2)
-    const dailyVarriantData = window.google.visualization.arrayToDataTable(data3)
+    var totalVaccinated = 0
+    const gTable = window.google.visualization.arrayToDataTable(response.data)
+
+    gTable.insertColumn(0, 'date', 'Date')
+    for (var i=0; i < gTable.getNumberOfRows(); i++) {
+      var dateStr = gTable.getValue(i, 1).split('-')
+      gTable.setValue(i, 0, new Date(parseInt(dateStr[0]), parseInt(dateStr[1])-1, parseInt(dateStr[2])))
+      totalVaccinated += gTable.getValue(i, 9)
+    }
+
+    gTable.removeColumn(1)
+    console.log(gTable)
+
+    const lastRowIndex = gTable.getNumberOfRows()-1
 
     this.setState({
-      newCases: dailyCaseData.getValue(dailyCaseData.getNumberOfRows()-1, 1),
-      newDeaths: dailyCaseData.getValue(dailyCaseData.getNumberOfRows()-1, 2),
-      newVacci: dailyVacciData.getValue(dailyVacciData.getNumberOfRows()-1, 1),
-      totalCases: dailyCaseData.getValue(dailyCaseData.getNumberOfRows()-1, 3),
+      newCases: gTable.getValue(lastRowIndex, 1),
+      newDeaths: gTable.getValue(lastRowIndex, 2),
+      newVacci: gTable.getValue(lastRowIndex, 9),
+      totalCases: gTable.getValue(lastRowIndex, 5),
+      todaysDate: gTable.getValue(lastRowIndex, 0),
+      totalVaccinated: totalVaccinated,
       covidData: response,
-      dailyCasesChartData: {gTable: dailyCaseData},
-      dailyVacciChartData: {gTable: dailyVacciData},
-      dailyVarriantChartData: {gTable: dailyVarriantData}
+      gTable: gTable,
     })
   }
 
   async componentDidMount() {
     await this.getData()
-    this.drawDailyCasesChart()
-    this.drawDailyVaccineChart()
-    this.drawTotalCaseDeathChart()
-    this.drawTotalVaccineChart()
-    this.drawDailyDeathsChart()
-    this.drawTotalVariantChart()
+    this.drawCharts()
     
     if (!this.state.isMobile) {
       window.addEventListener('resize', () => {
-        this.drawDailyCasesChart()
-        this.drawDailyVaccineChart()
-        this.drawTotalCaseDeathChart()
-        this.drawTotalVaccineChart()
-        this.drawDailyDeathsChart()
-        this.drawTotalVariantChart()
+        this.drawCharts()
       })
     }
   }
@@ -111,11 +73,7 @@ class Home extends React.Component {
       legend: { position: 'bottom' },
       backgroundColor: {fill: 'white'},
       chartArea: {left: '8%', width: '87%'},
-      animation: {
-        startup: !this.state.isMobile,
-        duration: 800,
-        easing: 'out',
-      },
+      lineWidth: this.state.isMobile ? 1 : 2,
       hAxis: {
         maxTextLines: 1,
         format: 'MMM d, YYYY',
@@ -155,11 +113,6 @@ class Home extends React.Component {
         format: 'short',
         maxTextLines: 1,
       },
-      animation: {
-        startup: !this.state.isMobile,
-        duration: 800,
-        easing: 'out',
-      },
     }
 
     const domElement = document.getElementById(domId)
@@ -167,39 +120,68 @@ class Home extends React.Component {
     chart.draw(dataView, options)
   }
 
-  drawDailyCasesChart() {
-    const gTable = this.state.dailyCasesChartData.gTable
+  drawCharts() {
+    const gTable = this.state.gTable
     const dataToDraw = new window.google.visualization.DataView(gTable)
-    dataToDraw.hideColumns([2,3,4,5,6])
-    this.drawLineChart(dataToDraw.toDataTable(), 'Daily New Cases', 'dailyCasesChart')
-  }
 
-  drawDailyDeathsChart() {
-    const gTable = this.state.dailyCasesChartData.gTable
-    const dataToDraw = new window.google.visualization.DataView(gTable)
-    dataToDraw.hideColumns([1,3,4,5,6])
-    this.drawLineChart(dataToDraw.toDataTable(), 'Daily New Deaths', 'dailyDeathsChart')
-  }
+    dataToDraw.setColumns([0,1])
+    this.drawLineChart(
+      dataToDraw.toDataTable(), 
+      'Daily New Cases', 
+      'dailyCasesChart',
+    )
+    
+    dataToDraw.setColumns([0,4])
+    this.drawLineChart(
+      dataToDraw.toDataTable(), 
+      'Daily Percent Positive Tests', 
+      'dailyPositivityChart',
+    )
+    
+    dataToDraw.setColumns([0,2])
+    this.drawLineChart(
+      dataToDraw.toDataTable(), 
+      'Daily New Deaths', 
+      'dailyDeathsChart',
+    )
+    
+    dataToDraw.setColumns([0,6,7,8])
+    this.drawStackedBarChart(
+      dataToDraw.toDataTable(), 
+      'Total Case Summary',
+      'totalCaseDataChart',
+    )
 
-  drawTotalCaseDeathChart() {
-    const gTable = this.state.dailyCasesChartData.gTable
-    const dataToDraw = new window.google.visualization.DataView(gTable)
-    dataToDraw.hideColumns([1,2,3])
-    this.drawStackedBarChart(dataToDraw.toDataTable(), 'Total Case Summary', 'totalCaseDataChart')
-  }
+    dataToDraw.setRows(gTable.getFilteredRows([
+      {column: 0, minValue: new Date(2021, 0, 1)}
+    ]))
+    dataToDraw.setColumns([0,9])
+    this.drawLineChart(
+      dataToDraw.toDataTable(),
+      'Daily New Vaccinations', 
+      'dailyVaccinationChart',
+    )
 
-  drawDailyVaccineChart() {
-    const gTable = this.state.dailyVacciChartData.gTable
-    const dataToDraw = new window.google.visualization.DataView(gTable)
-    dataToDraw.hideColumns([2,3])
-    this.drawLineChart(dataToDraw, 'Daily New Vaccinations', 'dailyVaccinationChart')
-  }
+    dataToDraw.setRows(gTable.getFilteredRows([
+      {column: 0, minValue: new Date(2021, 0, 1)}
+    ]))
+    dataToDraw.setColumns([0,10,11])
+    this.drawStackedBarChart(
+      dataToDraw.toDataTable(), 
+      'Total Vaccinations Summary', 
+      'totalVaccinationChart',
+    )
 
-  drawTotalVaccineChart() {
-    const gTable = this.state.dailyVacciChartData.gTable
-    const dataToDraw = new window.google.visualization.DataView(gTable)
-    dataToDraw.setColumns([0,2,3])
-    this.drawStackedBarChart(dataToDraw.toDataTable(), 'Total Vaccinations Summary', 'totalVaccinationChart')
+    dataToDraw.setRows(gTable.getFilteredRows([
+      {column: 0, minValue: new Date(2021, 0, 1)}
+    ]))
+    dataToDraw.setColumns([0,12,13,14])
+    console.log(dataToDraw)
+    this.drawStackedBarChart(
+      dataToDraw.toDataTable(), 
+      'Total Variants Summary', 
+      'totalVariantsChart',
+    )
 
     /* 
     Bug caused when using animation.startup = true with DataView. Had to 
@@ -209,19 +191,15 @@ class Home extends React.Component {
     */
   }
 
-  drawTotalVariantChart() {
-    const gTable = this.state.dailyVarriantChartData.gTable
-    const dataToDraw = new window.google.visualization.DataView(gTable)
-    this.drawStackedBarChart(dataToDraw.toDataTable(), 'Total Variants Summary', 'totalVariantsChart')
-  }
-
   render() {
-    var todaysDate = new Date()
-    var options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' };
-    if (this.state.dailyCasesChartData != null) {
-      const gTable = this.state.dailyCasesChartData.gTable
-      todaysDate = gTable.getValue(gTable.getNumberOfRows()-1, 0)
-    }
+    var todaysDate = this.state.todaysDate ? this.state.todaysDate : new Date()
+    var options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' }
+    var percentVaccinated = ((this.state.totalVaccinated/(14.8*1000000))*100).toFixed(2)
+
+    const tableColumns = [
+      {title: 'Region', field: 'region'},
+      {title: 'New Cases', field: 'new cases', defaultSort: 'desc'},
+    ]
 
     return(
       <Page>
@@ -236,34 +214,65 @@ class Home extends React.Component {
         <Section>
           <h2>Cases and Deaths</h2>
           <ChartWrapper>
-            <div style={{width: '95%', height: '95%'}} id='dailyCasesChart'/>
+            <Chart id='dailyCasesChart'/>
           </ChartWrapper>
           <ChartWrapper>
-            <div style={{width: '95%', height: '95%'}} id='dailyDeathsChart'/>
+            <Chart id='dailyPositivityChart'/>
           </ChartWrapper>
           <ChartWrapper>
-            <div style={{width: '95%', height: '95%'}} id='totalCaseDataChart'/>
+            <Chart id='dailyDeathsChart'/>
+          </ChartWrapper>
+          <ChartWrapper>
+            <Chart id='totalCaseDataChart'/>
           </ChartWrapper>
         </Section>
         <Section>
           <h2>Vaccination</h2>
           <ChartWrapper>
-            <div style={{width: '95%', height: '95%'}} id='dailyVaccinationChart'/>
+            <Chart id='dailyVaccinationChart'/>
           </ChartWrapper>
           <ChartWrapper>
-            <div style={{width: '95%', height: '95%'}} id='totalVaccinationChart'/>
+            <Chart id='totalVaccinationChart'/>
           </ChartWrapper>
+          <StatCardWrapper marginTop>
+            <StatCard 
+              value={`${percentVaccinated}%`} 
+              name='of Ontario has recieved at least one dose of a vaccine'
+            />
+          </StatCardWrapper>
+        </Section>
+        <Section>
+          <h2>Regional</h2>
+          <MaterialTable 
+            columns={tableColumns} 
+            data={this.state.covidData ? this.state.covidData.regional_data : []}
+            title='Daily New Cases By Region'
+            style={{
+              borderRadius: '10px', boxShadow: 'none', 
+              filter: 'drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))',
+              color: 'black',
+            }}
+          />
         </Section>
         <Section>
           <h2>Variants</h2>
           <ChartWrapper>
-            <div style={{width: '95%', height: '95%'}} id='totalVariantsChart'/>
+            <Chart id='totalVariantsChart'/>
           </ChartWrapper>
         </Section>
         <Section style={{marginBottom: '20px', fontSize: '30px'}}>
           <center>
-            <a href='https://www.google.com/' target='_blank' rel="noreferrer"><i class='bx bxl-github'></i></a>
-            <a href='https://twitter.com/OntarioCovid19' target='_blank' rel="noreferrer"><i class='bx bxl-twitter'></i></a>
+            <a 
+              href='https://www.google.com/' target='_blank' rel="noreferrer"
+            >
+              <i class='bx bxl-github'/>
+            </a>
+            <a 
+              href='https://twitter.com/OntarioCovid19' target='_blank' 
+              rel="noreferrer"
+            >
+              <i class='bx bxl-twitter'/> 
+            </a>
           </center>
         </Section>
       </Page>
@@ -279,6 +288,11 @@ const ChartWrapper = styled.div`
   display: flex;
   justify-content: center;
   height: 40vh;
+`
+
+const Chart = styled.div`
+  width: 95%;
+  height: 95%;
 `
 
 const Section = styled.div`
