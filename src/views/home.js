@@ -260,19 +260,21 @@ class Home extends React.Component {
             <Chart id='totalVariantsChart'/>
           </ChartWrapper>
         </Section>
-        <Section style={{marginBottom: '20px', fontSize: '30px'}}>
+        <Section style={{marginBottom: '20px'}}>
           <center>
             <a 
               href='https://www.google.com/' target='_blank' rel="noreferrer"
+              style={{fontSize: '30px'}}
             >
               <i class='bx bxl-github'/>
             </a>
             <a 
               href='https://twitter.com/OntarioCovid19' target='_blank' 
-              rel="noreferrer"
+              rel="noreferrer" style={{fontSize: '30px'}} 
             >
               <i class='bx bxl-twitter'/> 
             </a>
+            <p>Last updated: {todaysDate.toLocaleDateString("en-US", options)}</p>
           </center>
         </Section>
       </Page>
