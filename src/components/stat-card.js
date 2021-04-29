@@ -29,7 +29,9 @@ export const StatCardWrapper = styled.div`
   margin-top: ${props => props.marginTop ? 20 : 0}px;
 
   @media only screen and (max-width: 702px) {
-    height: ${props => props.children.length*1.25*100}px;
     flex-direction: column;
+    div:not(:first-child) {
+      margin-top: 20px;
+    }
   }
 `
