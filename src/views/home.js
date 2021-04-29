@@ -14,6 +14,7 @@ class Home extends React.Component {
       totalCases: null,
       todaysDate: null,
       totalVaccinated: 0,
+      totalFullyVaccinated: 0,
       isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     }
   }
@@ -50,6 +51,7 @@ class Home extends React.Component {
       totalCases: gTable.getValue(lastRowIndex, 5),
       todaysDate: gTable.getValue(lastRowIndex, 0),
       totalVaccinated: totalVaccinated,
+      totalFullyVaccinated: gTable.getValue(lastRowIndex, 10),
       covidData: response,
       gTable: gTable,
     })
@@ -194,7 +196,9 @@ class Home extends React.Component {
   render() {
     var todaysDate = this.state.todaysDate ? this.state.todaysDate : new Date()
     var options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' }
-    var percentVaccinated = ((this.state.totalVaccinated/(14.8*1000000))*100).toFixed(2)
+    var percentVaccinatedAdult = ((this.state.totalVaccinated/(10.5*1000000))*100).toFixed(2)
+    var percentFullyVaccinatedAdult = ((this.state.totalFullyVaccinated/(10.5*1000000))*100).toFixed(2)
+    var percentVaccinatedTotal = ((this.state.totalVaccinated/(14.8*1000000))*100).toFixed(2)
 
     const tableColumns = [
       {title: 'Region', field: 'region'},
@@ -236,8 +240,16 @@ class Home extends React.Component {
           </ChartWrapper>
           <StatCardWrapper marginTop>
             <StatCard 
-              value={`${percentVaccinated}%`} 
-              name='of Ontario has recieved at least one dose of a vaccine'
+              value={`${percentVaccinatedTotal}%`} 
+              name='of all Ontario residents have recieved at least one dose of a vaccine'
+            />
+            <StatCard 
+              value={`${percentVaccinatedAdult}%`} 
+              name='of Ontario adults have recieved at least one dose of a vaccine'
+            />
+            <StatCard 
+              value={`${percentFullyVaccinatedAdult}%`} 
+              name='of Ontario adults are fully vaccinated'
             />
           </StatCardWrapper>
         </Section>
