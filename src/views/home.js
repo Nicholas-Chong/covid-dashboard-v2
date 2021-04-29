@@ -275,8 +275,8 @@ class Home extends React.Component {
         <Section style={{marginBottom: '20px'}}>
           <center>
             <a 
-              href='https://www.google.com/' target='_blank' rel="noreferrer"
-              style={{fontSize: '30px'}}
+              href='https://github.com/Nicholas-Chong/covid-dashboard-v2' 
+              target='_blank' rel="noreferrer" style={{fontSize: '30px'}}
             >
               <i class='bx bxl-github'/>
             </a>
