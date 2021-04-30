@@ -1,3 +1,27 @@
+# COVID-19 Dashboard V2
+
+This is the second rendition of my Ontario COVID-19 dashboard.
+
+## Features
+
+Comprehensive visualizations of key metrics such as:
+* Daily cases and deaths data
+* Vaccination data
+* Variants data
+
+## App Architecture
+
+This version of the dashboard is built with a headless REST API backend and a standalone React SPA. This application structure eliminates the need for downtime during data updates (which was a crucial issue with the previous version of the dashboard application).
+
+## Technologies
+
+* React.js
+* HTML, CSS, JavaScript
+* Styled-components
+* Google charts library
+* Custom headless REST API backend
+* Netlify hosting
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
