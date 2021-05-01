@@ -10,8 +10,9 @@ export const StatCard = ({value, name}) => (
 const Wrapper = styled.div`
   border-radius: 10px;
   background: white;
-  flex-grow: 1;
-  max-width: 20%;
+  flex-grow: 0.15;
+  flex-basis: 15%;
+  // max-width: 15%;
   padding: 5px 15px 5px 15px;
   filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
 

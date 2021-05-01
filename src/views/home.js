@@ -50,6 +50,7 @@ class Home extends React.Component {
       newVacci: gTable.getValue(lastRowIndex, 9),
       totalCases: gTable.getValue(lastRowIndex, 5),
       todaysDate: gTable.getValue(lastRowIndex, 0),
+      totalDeaths: gTable.getValue(lastRowIndex, 6),
       totalVaccinated: totalVaccinated,
       totalFullyVaccinated: gTable.getValue(lastRowIndex, 10),
       covidData: response,
@@ -214,6 +215,7 @@ class Home extends React.Component {
           <StatCard value={this.state.newDeaths}name='New Deaths'/>
           <StatCard value={this.state.newVacci} name='New Vaccinations'/>
           <StatCard value={this.state.totalCases} name='Total Cases'/>
+          <StatCard value={this.state.totalDeaths} name='Total Deaths'/>
         </StatCardWrapper>
         <Section>
           <h2>Cases and Deaths</h2>
