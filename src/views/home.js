@@ -254,6 +254,15 @@ class Home extends React.Component {
               name='of Ontario adults are fully vaccinated'
             />
           </StatCardWrapper>
+          <TwitterEmbedIframe>
+            <a 
+              class="twitter-timeline" 
+              data-height="500" data-width="90%"
+              href="https://twitter.com/VaxHuntersCan?ref_src=twsrc%5Etfw"
+            >
+              Tweets by VaxHuntersCan
+            </a>
+          </TwitterEmbedIframe>
         </Section>
         <Section>
           <h2>Regional</h2>
@@ -319,4 +328,14 @@ const Section = styled.div`
   }
 `
 
+const TwitterEmbedIframe = styled.div`
+  margin: 20px auto 0px auto;
+  max-width: 600px;
+  text-align: center;
+  min-height: 500px;
+  height: 40vh;
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+  background-color: white;
+  border-radius: 10px;
+`
 export default Home
