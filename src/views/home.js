@@ -257,7 +257,7 @@ class Home extends React.Component {
           <TwitterEmbedIframe>
             <a 
               class="twitter-timeline" 
-              data-height="500" data-width="90%" 
+              data-height="500" data-width="90%"
               href="https://twitter.com/VaxHuntersCan?ref_src=twsrc%5Etfw"
             >
               Tweets by VaxHuntersCan
@@ -330,8 +330,7 @@ const Section = styled.div`
 
 const TwitterEmbedIframe = styled.div`
   margin: 20px auto 0px auto;
-  max-width: 700px;
-  min-width: 60vw;
+  max-width: 600px;
   text-align: center;
   min-height: 500px;
   height: 40vh;
