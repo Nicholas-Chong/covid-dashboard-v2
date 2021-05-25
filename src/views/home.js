@@ -24,23 +24,27 @@ class Home extends React.Component {
     // const dataUrl = 'http://127.0.0.1:8000'
     const fetched = await fetch(dataUrl)
     const response = await fetched.json()
-    console.log(response)
 
     // Load the google charts library
     await window.google.charts.load('current', {packages: ['corechart']})
 
-    var totalVaccinated = 0
     const gTable = window.google.visualization.arrayToDataTable(response.data)
 
     gTable.insertColumn(0, 'date', 'Date')
     for (var i=0; i < gTable.getNumberOfRows(); i++) {
       var dateStr = gTable.getValue(i, 1).split('-')
-      gTable.setValue(i, 0, new Date(parseInt(dateStr[0]), parseInt(dateStr[1])-1, parseInt(dateStr[2])))
-      totalVaccinated += gTable.getValue(i, 9)
+      gTable.setValue(
+        i, 
+        0, 
+        new Date(
+          parseInt(dateStr[0]), 
+          parseInt(dateStr[1])-1, 
+          parseInt(dateStr[2])
+        )
+      )
     }
 
     gTable.removeColumn(1)
-    console.log(gTable)
 
     const lastRowIndex = gTable.getNumberOfRows()-1
 
@@ -51,7 +55,10 @@ class Home extends React.Component {
       totalCases: gTable.getValue(lastRowIndex, 5),
       todaysDate: gTable.getValue(lastRowIndex, 0),
       totalDeaths: gTable.getValue(lastRowIndex, 6),
-      totalVaccinated: totalVaccinated,
+      totalVaccinated: (
+        gTable.getValue(lastRowIndex, 10) + 
+        gTable.getValue(lastRowIndex, 11)
+      ),
       totalFullyVaccinated: gTable.getValue(lastRowIndex, 10),
       covidData: response,
       gTable: gTable,
@@ -179,7 +186,6 @@ class Home extends React.Component {
       {column: 0, minValue: new Date(2021, 0, 1)}
     ]))
     dataToDraw.setColumns([0,12,13,14])
-    console.log(dataToDraw)
     this.drawStackedBarChart(
       dataToDraw.toDataTable(), 
       'Total Variants Summary', 
@@ -197,8 +203,8 @@ class Home extends React.Component {
   render() {
     var todaysDate = this.state.todaysDate ? this.state.todaysDate : new Date()
     var options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' }
-    var percentVaccinatedAdult = ((this.state.totalVaccinated/(10.5*1000000))*100).toFixed(2)
-    var percentFullyVaccinatedAdult = ((this.state.totalFullyVaccinated/(10.5*1000000))*100).toFixed(2)
+    var percentVaccinatedAdult = ((this.state.totalVaccinated/(12.8*1000000))*100).toFixed(2)
+    var percentFullyVaccinatedAdult = ((this.state.totalFullyVaccinated/(12.8*1000000))*100).toFixed(2)
     var percentVaccinatedTotal = ((this.state.totalVaccinated/(14.8*1000000))*100).toFixed(2)
 
     const tableColumns = [
