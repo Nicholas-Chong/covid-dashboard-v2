@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/logo2.jpg" />
+    <link rel="icon" href="%PUBLIC_URL%/virusicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta property="twitter:card" content="summary_large_image"/>
@@ -16,7 +16,7 @@
       name="description"
       content="Ontario COVID-19 dashboard"
     />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/virusicon.png" />
 
     <!-- Twitter Embed -->
     <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
@@ -57,6 +57,27 @@
 
       gtag('config', 'UA-171646131-1');
     </script>
+
+    <!-- Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('service-worker.js').then(function(registration) {
+            // Registration was successful
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }, function(err) {
+            // registration failed :(
+            console.log('ServiceWorker registration failed: ', err);
+          }).catch(function(err) {
+            console.log(err)
+          });
+        });
+      } else {
+        console.log('service worker is not supported');
+      }
+    </script>
+
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <title>Ontario COVID-19</title>
   </head>
