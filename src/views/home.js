@@ -214,7 +214,10 @@ class Home extends React.Component {
 
     return(
       <Page>
-        <center><h1>Ontario COVID-19 Dashboard</h1></center>
+        <center>
+          <h1>Ontario COVID-19 Dashboard</h1>
+          <p>Follow on Twitter <a href="https://twitter.com/OntarioCovid19" target="_blank" rel="noreferrer">@OntarioCovid19</a></p>
+        </center>
         <h2>{todaysDate.toLocaleDateString("en-US", options)} Snapshot</h2>
         <StatCardWrapper>
           <StatCard value={this.state.newCases} name='New Cases'/>

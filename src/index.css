@@ -12,3 +12,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+a {
+  border-bottom: solid 2px rgb(28, 127, 242);
+  color: black;
+  text-decoration: none;
+}
