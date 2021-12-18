@@ -179,16 +179,6 @@ class Home extends React.Component {
       'totalVaccinationChart',
     )
 
-    dataToDraw.setRows(gTable.getFilteredRows([
-      {column: 0, minValue: new Date(2021, 0, 1)}
-    ]))
-    dataToDraw.setColumns([0,12,13,14])
-    this.drawStackedBarChart(
-      dataToDraw.toDataTable(), 
-      'Total Variants Summary', 
-      'totalVariantsChart',
-    )
-
     /* 
     Bug caused when using animation.startup = true with DataView. Had to 
     return DataTable object chart.draw() to get the startup animation to work.
@@ -282,12 +272,6 @@ class Home extends React.Component {
               color: 'black',
             }}
           />
-        </Section>
-        <Section>
-          <h2>Variants</h2>
-          <ChartWrapper>
-            <Chart id='totalVariantsChart'/>
-          </ChartWrapper>
         </Section>
         <Section style={{marginBottom: '20px'}}>
           <center>
