@@ -28,23 +28,20 @@ class Home extends React.Component {
     // Load the google charts library
     await window.google.charts.load('current', {packages: ['corechart']})
 
-    const gTable = window.google.visualization.arrayToDataTable(response.data)
-
-    gTable.insertColumn(0, 'date', 'Date')
-    for (var i=0; i < gTable.getNumberOfRows(); i++) {
-      var dateStr = gTable.getValue(i, 1).split('-')
-      gTable.setValue(
-        i, 
-        0, 
-        new Date(
-          parseInt(dateStr[0]), 
-          parseInt(dateStr[1])-1, 
-          parseInt(dateStr[2])
-        )
+    // Change date from string to Date() object
+    for (const dataRow of response.data.slice(1)) {
+      const dateStr = dataRow[0].split("-")
+      dataRow[0] = new Date(
+        parseInt(dateStr[0]), 
+        parseInt(dateStr[1])-1, 
+        parseInt(dateStr[2])
       )
     }
 
-    gTable.removeColumn(1)
+    // Sort data by date
+    response.data.sort((a, b) => (a[0] - b[0]))
+
+    const gTable = window.google.visualization.arrayToDataTable(response.data)
 
     const lastRowIndex = gTable.getNumberOfRows()-1
 
